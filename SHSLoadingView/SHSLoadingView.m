@@ -12,11 +12,11 @@
 #define DefaultSpeed 0.5
 #define MaxSpeed 1.0
 #define MinSpeed 0
-#define MaxRadius 40.0
+#define MaxRadius 30.0
 #define MinRadius 10.0
 
 @interface SHSLoadingView() {
-    BOOL _stop;
+    BOOL _stop; //动画停止标志位
 }
 
 @property (nonatomic,strong) UIView *ball_1;
@@ -52,7 +52,6 @@
         _stop = NO;
         UIWindow *win = [[UIApplication sharedApplication].windows firstObject];
         [win addSubview:self];
-        NSLog(@"%@",win.subviews);
         [self startAnimation];
     }
 }
@@ -72,9 +71,6 @@
 - (void)hide {
     if (!_stop) {
         _stop = YES;
-        if (self.superview) {
-            [self removeFromSuperview];
-        }
     }
 }
 
@@ -83,6 +79,34 @@
 - (void)startAnimation {
     self.frame = self.superview.bounds;
     [self.bgView setAlpha:1];
+    [self.ball_1 setAlpha:1];
+    [self.ball_2 setAlpha:1];
+    [self.ball_3 setAlpha:1];
+    [UIView animateWithDuration:1.0f delay:.0f usingSpringWithDamping:0.3f initialSpringVelocity:5.0f options:UIViewAnimationOptionCurveEaseIn animations:^{
+        self.ball_1.center = CGPointMake(self.ball_2.center.x - _radius*2, self.ball_2.center.y);
+        self.ball_3.center = CGPointMake(self.ball_2.center.x + _radius*2, self.ball_2.center.y);
+    } completion:^(BOOL finished) {
+        [self startRotateAnimation];
+    }];
+
+}
+
+- (void)endAnimation {
+    [UIView animateWithDuration:0.5f delay:0.2 options:UIViewAnimationOptionCurveEaseIn animations:^{
+        self.ball_1.center = self.ball_2.center;
+        self.ball_3.center = self.ball_2.center;
+    } completion:^(BOOL finished) {
+        [UIView animateWithDuration:0.5 delay:0 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.alpha = .0f;
+        } completion:^(BOOL finished) {
+            if (self.superview) {
+                [self removeFromSuperview];
+            }
+        }];
+    }];
+}
+
+- (void)startRotateAnimation {
     [self startBall_1Animation];
     [self startBall_3Animation];
 }
@@ -130,11 +154,11 @@
 
 - (void)animationDidStart:(CAAnimation *)anim {
     [UIView animateWithDuration:0.6 * _speed animations:^{
-        self.ball_1.transform = CGAffineTransformScale(self.ball_1.transform, 0.7, 0.7);
+        self.ball_1.transform = CGAffineTransformScale(self.ball_1.transform, 0.5, 0.5);
         self.ball_1.transform = CGAffineTransformTranslate(self.ball_1.transform, -_radius, 0);
-        self.ball_3.transform = CGAffineTransformScale(self.ball_3.transform, 0.7, 0.7);
+        self.ball_3.transform = CGAffineTransformScale(self.ball_3.transform, 0.5, 0.5);
         self.ball_3.transform = CGAffineTransformTranslate(self.ball_3.transform, _radius, 0);
-        self.ball_2.transform = CGAffineTransformScale(self.ball_2.transform, 0.7, 0.7);
+        self.ball_2.transform = CGAffineTransformScale(self.ball_2.transform, 0.5, 0.5);
     } completion:^(BOOL finished) {
         [UIView animateWithDuration:0.6 * _speed delay:0.1 options:UIViewAnimationOptionCurveEaseInOut animations:^{
             self.ball_1.transform = CGAffineTransformIdentity;
@@ -146,7 +170,9 @@
 
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag {
     if (flag && !_stop) {
-        [self startAnimation];
+        [self startRotateAnimation];
+    } else if (_stop){
+        [self endAnimation];
     }
 }
 
@@ -172,32 +198,31 @@
 }
 
 - (void)setColors:(NSArray *)colors {
-    _colors = colors;
     for (int i = 0; i < colors.count; i++) {
-        if (i == 3) {
-            break;
-        }
         if ([colors[i] isKindOfClass:[UIColor class]]) {
-            if (i == 0) {
-                self.ball_1.backgroundColor = colors[i];
-            } else if (i == 1) {
-                self.ball_2.backgroundColor = colors[i];
-            } else if (i == 2) {
-                self.ball_3.backgroundColor = colors[i];
+            if (i == 2) {
+                _colors = [colors subarrayWithRange:NSMakeRange(0, 3)];
+                break;
             }
+            continue;
+        } else {
+            break;
         }
     }
 }
 
-#pragma mark - lazy load
+#pragma mark - Getter Method
 - (UIView *)ball_1 {
     if (!_ball_1) {
         _ball_1 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _radius*2, _radius*2)];
         _ball_1.layer.cornerRadius = _radius;
-        _ball_1.backgroundColor = [UIColor blackColor];
-        [self addSubview:_ball_1];
+        _ball_1.backgroundColor = _colors[0];
+//        _ball_1.center = CGPointMake(self.ball_2.center.x - _radius*2, self.ball_2.center.y);
+        _ball_1.center = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
+
+        [self insertSubview:_ball_1 atIndex:1];
     }
-    _ball_1.center = CGPointMake(self.ball_2.center.x - _radius*2, self.ball_2.center.y);
+   
     return _ball_1;
 }
 
@@ -205,10 +230,11 @@
     if (!_ball_2) {
         _ball_2 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _radius*2, _radius*2)];
         _ball_2.layer.cornerRadius = _radius;
-        _ball_2.backgroundColor = [UIColor blackColor];
-        [self addSubview:_ball_2];
+        _ball_2.backgroundColor = _colors[1];
+        _ball_2.center = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
+        [self insertSubview:_ball_2 atIndex:3];
     }
-    _ball_2.center = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
+    
     return _ball_2;
 }
 
@@ -216,10 +242,13 @@
     if (!_ball_3) {
         _ball_3 = [[UIView alloc] initWithFrame:CGRectMake(0, 0, _radius*2, _radius*2)];
         _ball_3.layer.cornerRadius = _radius;
-        _ball_3.backgroundColor = [UIColor blackColor];
-        [self addSubview:_ball_3];
+        _ball_3.backgroundColor = _colors[2];
+//        _ball_3.center = CGPointMake(self.ball_2.center.x + _radius*2, self.ball_2.center.y);
+        _ball_3.center = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
+        [self insertSubview:_ball_3 atIndex:2];
+       
     }
-    _ball_3.center = CGPointMake(self.ball_2.center.x + _radius*2, self.ball_2.center.y);
+    
     return _ball_3;
 }
 
@@ -230,7 +259,8 @@
         _bgView.clipsToBounds = YES;
         [self insertSubview:_bgView atIndex:0];
     }
-    _bgView.frame = CGRectMake(self.ball_1.frame.origin.x - _radius, self.ball_1.frame.origin.y - _radius*2, _radius*2*4, _radius*2*3);
+     _bgView.frame = CGRectMake(self.ball_1.frame.origin.x - _radius, self.ball_1.frame.origin.y - _radius*2, _radius*2*4, _radius*2*3);
+    _bgView.center = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
     return _bgView;
 }
 

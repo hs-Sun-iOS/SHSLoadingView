@@ -19,7 +19,7 @@
  */
 @property (nonatomic,assign) CGFloat speed;
 /**
- *  小球的半径，默认为20  10~40
+ *  小球的半径，默认为20  10~30
  */
 @property (nonatomic,assign) CGFloat radius;
 
