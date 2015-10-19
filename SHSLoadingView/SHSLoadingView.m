@@ -122,7 +122,7 @@
     CAKeyframeAnimation *ball_1Animation = [CAKeyframeAnimation animationWithKeyPath:@"position"];
     ball_1Animation.path = ball_1_Path1.CGPath;
     ball_1Animation.removedOnCompletion = NO;
-    ball_1Animation.fillMode = kCAFillModeForwards;
+   // ball_1Animation.fillMode = kCAFillModeForwards;
     ball_1Animation.calculationMode = kCAAnimationCubic;
     ball_1Animation.repeatCount = 1;
     ball_1Animation.duration = 3 * _speed;
@@ -143,7 +143,7 @@
     CAKeyframeAnimation *ball_3Animation = [CAKeyframeAnimation animationWithKeyPath:@"position"];
     ball_3Animation.path = ball_3_Path1.CGPath;
     ball_3Animation.removedOnCompletion = NO;
-    ball_3Animation.fillMode = kCAFillModeForwards;
+   // ball_3Animation.fillMode = kCAFillModeForwards;
     ball_3Animation.calculationMode = kCAAnimationCubic;
     ball_3Animation.repeatCount = 1;
     ball_3Animation.duration = 3 * _speed;
@@ -175,6 +175,24 @@
         [self endAnimation];
     }
 }
+
+#pragma mark - HandleOrientation
+- (void)didMoveToSuperview {
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(orientationChanged) name:UIDeviceOrientationDidChangeNotification object:nil];
+}
+
+- (void)willRemoveSubview:(UIView *)subview {
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:UIDeviceOrientationDidChangeNotification object:nil];
+}
+
+- (void)orientationChanged {
+    self.frame = self.superview.bounds;
+    self.ball_2.center = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
+    self.ball_1.center = CGPointMake(self.ball_2.center.x - _radius*2, self.frame.size.height/2);
+    self.ball_3.center = CGPointMake(self.ball_2.center.x + _radius*2, self.frame.size.height/2);
+    self.bgView.center = self.ball_2.center;
+}
+
 
 #pragma mark - Setter Method
 - (void)setRadius:(CGFloat)radius {
@@ -257,12 +275,14 @@
         _bgView = [[UIVisualEffectView alloc] initWithEffect:[UIBlurEffect effectWithStyle:UIBlurEffectStyleLight]];
         _bgView.layer.cornerRadius = _radius;
         _bgView.clipsToBounds = YES;
+        _bgView.frame = CGRectMake(self.ball_1.frame.origin.x - _radius, self.ball_1.frame.origin.y - _radius*2, _radius*2*4, _radius*2*3);
+        _bgView.center = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
         [self insertSubview:_bgView atIndex:0];
     }
-     _bgView.frame = CGRectMake(self.ball_1.frame.origin.x - _radius, self.ball_1.frame.origin.y - _radius*2, _radius*2*4, _radius*2*3);
-    _bgView.center = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
     return _bgView;
 }
+
+
 
 
 

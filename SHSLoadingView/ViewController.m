@@ -24,8 +24,8 @@
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
     loadingView = [SHSLoadingView loadingView];
-    loadingView.colors = @[[UIColor redColor],[UIColor greenColor],[UIColor blueColor]];
-    loadingView.radius = 30;
+//    loadingView.colors = @[[UIColor redColor],[UIColor greenColor],[UIColor blueColor]];
+//    loadingView.radius = 30;
     [loadingView show];
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [loadingView hide];
